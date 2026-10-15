@@ -1,0 +1,22 @@
+node_modules/
+dist/
+.env
+backend/.env
+backend/learnpilot.db
+__pycache__/
+*.pyc
+.pytest_cache/
+# Environment variables and API keys
+.env
+.env.*
+!.env.example
+
+# Python virtual environments
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Node dependencies and build output
+node_modules/
+dist/
