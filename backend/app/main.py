@@ -264,16 +264,113 @@ def assistant_history(pid:str=Depends(profile_id),db:Session=Depends(get_db)):
 def clear_assistant_history(pid:str=Depends(profile_id),db:Session=Depends(get_db)):
     db.query(m.ChatMessage).filter(m.ChatMessage.profile_id==pid).delete(synchronize_session=False);db.commit()
 
+
+DEMO_MODE = True
+
 @app.post('/api/assistant/chat')
-async def chat(data:ChatIn,pid:str=Depends(profile_id),db:Session=Depends(get_db)):
-    ensure_profile(db,pid)
-    previous=db.scalars(select(m.ChatMessage).where(m.ChatMessage.profile_id==pid).order_by(m.ChatMessage.created_at.desc()).limit(12)).all()
-    history='\n'.join(f"{x.role}: {x.content}" for x in reversed(previous))
-    prompt=f"Respond in {data.language}. Context: {data.context or 'No extra context provided'}. Previous conversation:\n{history or 'No previous messages.'}\nNew question: {data.message}\nAnswer clearly for a college student. If asked about syllabus facts not provided, say so rather than pretending to know."
-    try: answer=await llm_json_or_text('You are LearnPilot AI, a helpful study assistant. Be accurate, clear, and educational.',prompt)
-    except RuntimeError as e:raise HTTPException(502,str(e))
-    db.add(m.ChatMessage(profile_id=pid,role='user',content=data.message));db.add(m.ChatMessage(profile_id=pid,role='assistant',content=answer));db.commit()
-    return {'answer':answer,'provider':'configured LLM','language':data.language}
+async def chat(data: ChatIn, pid: str = Depends(profile_id), db: Session = Depends(get_db)):
+    ensure_profile(db, pid)
+
+    previous = db.scalars(
+        select(m.ChatMessage)
+        .where(m.ChatMessage.profile_id == pid)
+        .order_by(m.ChatMessage.created_at.desc())
+        .limit(12)
+    ).all()
+
+    history = '\n'.join(
+        f"{x.role}: {x.content}" for x in reversed(previous)
+    )
+
+    if DEMO_MODE:
+        question = data.message.lower()
+
+        if "operating system" in question or "what is os" in question:
+            answer = (
+                "An Operating System (OS) is system software that "
+                "manages computer hardware and software resources. "
+                "Examples include Windows, Linux, and macOS."
+            )
+        elif "process scheduling" in question or "cpu scheduling" in question:
+            answer = (
+                "CPU scheduling is the method used by an operating "
+                "system to select which process gets CPU time. "
+                "Common algorithms include FCFS, SJF, Priority, "
+                "and Round Robin."
+            )
+        elif "deadlock" in question:
+            answer = (
+                "Deadlock is a situation in which processes wait "
+                "indefinitely for resources held by one another. "
+                "Its four necessary conditions are mutual exclusion, "
+                "hold and wait, no preemption, and circular wait."
+            )
+        elif "normalization" in question:
+            answer = (
+                "Database normalization organizes tables to reduce "
+                "duplicate data and prevent update anomalies. "
+                "Common normal forms include 1NF, 2NF, 3NF, and BCNF."
+            )
+        elif "dbms" in question or "database management system" in question:
+            answer = (
+                "A DBMS (Database Management System) is software "
+                "used to create, store, organize, retrieve, and manage "
+                "data. Examples include MySQL, PostgreSQL, and Oracle."
+            )
+        elif "artificial intelligence" in question or question.strip() == "what is ai":
+            answer = (
+                "Artificial Intelligence (AI) is a field of computing "
+                "that develops systems capable of tasks such as "
+                "reasoning, learning, and problem-solving."
+            )
+        elif "a* algorithm" in question or "a star algorithm" in question:
+            answer = (
+                "A* is a search algorithm that uses f(n) = g(n) + h(n). "
+                "Here, g(n) is the cost from the start node and h(n) "
+                "is the estimated cost to the goal."
+            )
+        else:
+            answer = (
+                "Demo Mode is enabled, so live Gemini responses are "
+                "disabled. I can answer selected demo questions about "
+                "Operating Systems, CPU Scheduling, Deadlock, DBMS, "
+                "Normalization, Artificial Intelligence, and A* search. "
+                "Try asking about one of these topics."
+            )
+
+        provider = "demo mode"
+
+    else:
+        prompt = (
+            f"Respond in {data.language}. "
+            f"Context: {data.context or 'No extra context provided'}. "
+            f"Previous conversation:\n{history or 'No previous messages.'}\n"
+            f"New question: {data.message}\n"
+            "Answer clearly for a college student. If asked about "
+            "syllabus facts not provided, say so rather than pretending to know."
+        )
+
+        try:
+            answer = await llm_json_or_text(
+                'You are LearnPilot AI, a helpful study assistant. '
+                'Be accurate, clear, and educational.',
+                prompt
+            )
+        except RuntimeError as e:
+            raise HTTPException(502, str(e))
+
+        provider = "configured LLM"
+
+    db.add(m.ChatMessage(profile_id=pid, role='user', content=data.message))
+    db.add(m.ChatMessage(profile_id=pid, role='assistant', content=answer))
+    db.commit()
+
+    return {
+        'answer': answer,
+        'provider': provider,
+        'language': data.language
+    }
+
 @app.post('/api/notes/generate')
 async def generate_notes(data:GenerateIn,pid:str=Depends(profile_id),db:Session=Depends(get_db)):
     prompt=f'Create {data.style} for the topic: {data.topic}. Use definitions, concise explanations, examples and key exam points. Do not claim to quote an uploaded syllabus. Return useful Markdown.'
