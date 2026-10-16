@@ -1,3 +1,4 @@
+from fastapi.middleware.cors import CORSMiddleware
 import os, re, uuid, json
 from datetime import date
 from pathlib import Path
@@ -17,6 +18,16 @@ from .services.integrations import youtube_search, llm_json_or_text, Configurati
 
 Base.metadata.create_all(bind=engine)
 app=FastAPI(title='LearnPilot AI API', version='1.0.0', description='Syllabus-based lecture discovery and student learning tracker')
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 origins=[x.strip() for x in os.getenv('FRONTEND_ORIGINS','http://localhost:5173,http://127.0.0.1:5173').split(',') if x.strip()]
 app.add_middleware(CORSMiddleware, allow_origins=origins, allow_credentials=False, allow_methods=['*'], allow_headers=['*'])
 
