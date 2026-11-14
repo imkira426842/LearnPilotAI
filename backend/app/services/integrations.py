@@ -94,7 +94,7 @@ async def llm_json_or_text(system: str, user: str, json_mode: bool = False) -> s
     Secrets remain on the backend and are never forwarded to the frontend.
     """
     provider = os.getenv("LLM_PROVIDER", "gemini").strip().lower()
-    model = os.getenv("LLM_MODEL", "gemini-2.5-flash").strip()
+    model = os.getenv("LLM_MODEL", "gemini-3.5-flash-lite").strip()
     timeout = httpx.Timeout(75.0)
 
     if provider == "gemini":
