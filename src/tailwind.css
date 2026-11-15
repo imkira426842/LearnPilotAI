@@ -1,0 +1,86 @@
+/*
+  Tailwind CSS v4, adopted page by page next to Bootstrap and the legacy styles.css.
+
+  - Every utility is prefixed:  tw:flex  tw:hover:bg-brand-600  tw:lg:grid-cols-2
+  - Utilities are `important`, so they beat Bootstrap and legacy CSS (both are un-layered).
+  - Preflight is NOT imported, so legacy pages keep their look. Components opt in to a small
+    reset by using the `lp-scope` class on their root (see the bottom of this file).
+*/
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme) prefix(tw);
+@import "tailwindcss/utilities.css" layer(utilities) prefix(tw) important;
+
+@theme {
+  --font-sans: "Inter", "DM Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  --color-brand-50: #eef3ff;
+  --color-brand-100: #dfe8ff;
+  --color-brand-200: #c3d4ff;
+  --color-brand-300: #9bb7fd;
+  --color-brand-400: #6c92fa;
+  --color-brand-500: #3f6ef4;
+  --color-brand-600: #2457e8;
+  --color-brand-700: #1c45c4;
+  --color-brand-800: #1d3ba0;
+  --color-brand-900: #1b3280;
+
+  --color-ink-900: #0f1b3d;
+  --color-ink-800: #1c2a52;
+  --color-ink-700: #2c3b66;
+  --color-ink-600: #46547d;
+  --color-ink-500: #66738f;
+  --color-ink-400: #8a95ad;
+  --color-ink-300: #b7c0d3;
+
+  --color-line: #e4e9f6;
+  --color-surface: #f5f7fd;
+
+  /* Full list, ascending: Tailwind emits variants in declaration order, so `wide` must sit
+     between `xl` and `2xl` or its rules would lose to xl:/sm: rules on the same element. */
+  --breakpoint-*: initial;
+  --breakpoint-sm: 40rem;
+  --breakpoint-md: 48rem;
+  --breakpoint-lg: 64rem;
+  --breakpoint-xl: 80rem;
+  --breakpoint-wide: 87.5rem;
+  --breakpoint-2xl: 96rem;
+
+  --shadow-card: 0 1px 2px rgba(16, 24, 64, 0.04), 0 10px 26px -14px rgba(31, 63, 191, 0.16);
+  --shadow-card-hover: 0 2px 4px rgba(16, 24, 64, 0.05), 0 18px 34px -16px rgba(31, 63, 191, 0.3);
+
+  --animate-pop: pop 160ms ease-out;
+  @keyframes pop {
+    from { opacity: 0; transform: translateY(-4px) scale(0.98); }
+    to { opacity: 1; transform: none; }
+  }
+}
+
+/*
+  Mini reset, scoped to components that carry `lp-scope`.
+  Un-layered on purpose: it must out-rank Bootstrap's element rules (equal specificity, later in
+  the cascade) while staying below the `important` utilities.
+*/
+:where(.lp-scope),
+:where(.lp-scope) *,
+:where(.lp-scope) *::before,
+:where(.lp-scope) *::after {
+  box-sizing: border-box;
+  border-width: 0;
+  border-style: solid;
+  border-color: #e4e9f6;
+}
+:where(.lp-scope) h1, :where(.lp-scope) h2, :where(.lp-scope) h3,
+:where(.lp-scope) h4, :where(.lp-scope) h5, :where(.lp-scope) h6 {
+  margin: 0; font-size: inherit; font-weight: inherit; line-height: inherit;
+}
+:where(.lp-scope) p, :where(.lp-scope) figure, :where(.lp-scope) blockquote { margin: 0; }
+:where(.lp-scope) ul, :where(.lp-scope) ol { margin: 0; padding: 0; list-style: none; }
+:where(.lp-scope) a { color: inherit; text-decoration: none; }
+:where(.lp-scope) button, :where(.lp-scope) input {
+  font: inherit; color: inherit; margin: 0; letter-spacing: inherit;
+}
+:where(.lp-scope) button { padding: 0; background: transparent; cursor: pointer; text-align: inherit; }
+:where(.lp-scope) svg, :where(.lp-scope) img { display: block; max-width: 100%; }
+:where(.lp-scope) :focus-visible { outline: 2px solid #3f6ef4; outline-offset: 2px; }
